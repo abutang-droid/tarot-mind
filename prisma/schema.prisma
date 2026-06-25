@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  nickname   String   @db.VarChar(50)
+  gender     String?  @db.VarChar(10)
+  birthday   DateTime?
+  avatar     String?  @db.VarChar(500)
+  email      String?  @unique @db.VarChar(100)
+  password   String?  @db.VarChar(200)
+  externalId String?  @unique @db.VarChar(100)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  dailyCards      DailyCardRecord[]
+  wishRecords     WishRecord[]
+  fortuneViews    FortuneView[]
+  readings        ReadingRecord[]
+  knowledgeReads  KnowledgeRead[]
+}
+
+model DailyCardRecord {
+  id        String   @id @default(uuid())
+  userId    String
+  cardName  String   @db.VarChar(50)
+  cardType  String   @db.VarChar(20)
+  message   String   @db.VarChar(500)
+  luckyTip  String?  @db.VarChar(200)
+  imageUrl  String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId, createdAt])
+}
+
+model WishRecord {
+  id         String   @id @default(uuid())
+  userId     String
+  wish       String   @db.VarChar(200)
+  cardName   String   @db.VarChar(50)
+  conclusion String   @db.VarChar(20)
+  advice     String   @db.VarChar(500)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId, createdAt])
+}
+
+model ReadingRecord {
+  id          String   @id @default(uuid())
+  userId      String
+  spreadType  String   @db.VarChar(20)
+  question    String?  @db.VarChar(500)
+  cards       Json
+  conclusion  String?  @db.VarChar(2000)
+  crystalName String?  @db.VarChar(50)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId, createdAt])
+}
+
+model FortuneView {
+  id        String   @id @default(uuid())
+  userId    String
+  date      DateTime
+  love      Json
+  work      Json
+  wealth    Json
+  mood      Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model KnowledgeRead {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String   @db.VarChar(100)
+  content   String   @db.VarChar(500)
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  @@unique([userId, date])
+}
