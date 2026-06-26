@@ -1,20 +1,31 @@
 import type { Metadata } from "next"
 import "./globals.css"
+import AppShell from "@/components/AppShell"
 
 export const metadata: Metadata = {
-  title: "TarotMind — 塔罗占卜 · 每日指引",
-  description: "极简治愈风的在线塔罗占卜工具，每日抽卡、心愿占卜、日运播报、三牌阵解读",
+  title: "Manto — 翻牌看运，拜神护体",
+  description: "翻开你的牌，神灵在背面 · AI塔罗占卜 × 每日拜神 × 五行水晶",
+  keywords: ["tarot", "塔罗", "占卜", "daily worship", "crystal", "spiritual", "web3"],
+  openGraph: {
+    title: "Manto — 翻牌看运，拜神护体",
+    description: "翻开你的牌，神灵在背面",
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN">
+    <html lang="en">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#0D0D0D" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-screen antialiased">
-        {children}
+      <body className="antialiased">
+        <AppShell>
+          {children}
+        </AppShell>
       </body>
     </html>
   )

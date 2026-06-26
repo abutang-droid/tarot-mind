@@ -1,36 +1,39 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { getAuthUser } from "@/lib/auth"
 import { drawCards } from "@/lib/tarot/draw"
-import { interpretReading } from "@/lib/tarot/reading"
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthUser()
-  if (!auth) return NextResponse.json({ error: "未登录" }, { status: 401 })
+  try {
+    const body = await req.json()
+    const { question = "", spreadType = "three" } = body
 
-  const { spreadType = "three", question = "" } = await req.json()
-  if (!["single", "three", "diamond", "moon", "horseshoe", "celtic"].includes(spreadType)) {
-    return NextResponse.json({ error: "无效的牌阵类型" }, { status: 400 })
+    const spreadKey = spreadType === "single" ? "single" : "three"
+    const result = drawCards(spreadKey, question || "今日整体运势")
+
+    const cards = result.cards.map((c, i) => {
+      const pos = c.position
+      return {
+        position: pos,
+        positionLabel: pos === "past" ? "过去" : pos === "present" ? "现在" : pos === "future" ? "未来" : "此刻",
+        cardName: c.cardName,
+        cardNameEn: c.card?.nameEn || c.cardName,
+        orientation: c.orientation,
+        element: c.card?.element || "major",
+        revealed: false,
+        interpretation: "",
+        mantra: "",
+      }
+    })
+
+    const readingId = `r_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+
+    return NextResponse.json({
+      readingId,
+      cards,
+      question: question || "今日整体运势",
+      free: true,
+    })
+  } catch (error) {
+    console.error("Reading API error:", error)
+    return NextResponse.json({ error: "Failed to start reading" }, { status: 500 })
   }
-
-  const drawResult = drawCards(spreadType, question)
-  const interpretation = interpretReading(drawResult.cards, spreadType)
-
-  const record = await prisma.readingRecord.create({
-    data: { userId: auth.userId, spreadType, question, cards: interpretation.cards as any, conclusion: interpretation.conclusion, crystalName: interpretation.crystalName },
-  })
-
-  return NextResponse.json({
-    id: record.id,
-    spreadType,
-    question,
-    cards: interpretation.cards,
-    relationships: interpretation.relationships,
-    conclusion: interpretation.conclusion,
-    crystalName: interpretation.crystalName,
-    crystalSpec: interpretation.crystalSpec,
-    crystalDescription: interpretation.crystalDescription,
-    seed: drawResult.seed,
-    createdAt: record.createdAt.toISOString(),
-  })
 }
