@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { getAuthUser } from "@/lib/auth"
 import { ALL_CARDS } from "@/lib/tarot/cards"
 
 const DAILY_MESSAGES = [
@@ -14,32 +12,15 @@ const DAILY_MESSAGES = [
 ]
 
 export async function GET(req: NextRequest) {
-  const auth = await getAuthUser()
-  if (!auth) return NextResponse.json({ error: "未登录" }, { status: 401 })
-
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-
-  const existing = await prisma.dailyCardRecord.findFirst({
-    where: { userId: auth.userId, createdAt: { gte: today } },
-    orderBy: { createdAt: "desc" },
-  })
-
-  if (existing) {
-    return NextResponse.json({ cardName: existing.cardName, cardType: existing.cardType, message: existing.message, luckyTip: existing.luckyTip, imageUrl: existing.imageUrl, alreadyDrew: true })
-  }
-
-  const seed = today.getTime() + auth.userId.charCodeAt(0)
+  const seed = today.getTime()
   const cardIndex = Math.abs(seed) % ALL_CARDS.length
   const card = ALL_CARDS[cardIndex]
   const types = ["天使卡", "治愈卡", "幸运卡"]
   const cardType = types[Math.abs(seed + 1) % types.length]
   const message = DAILY_MESSAGES[Math.abs(seed + 2) % DAILY_MESSAGES.length]
   const luckyTip = `幸运色：${["金色", "紫色", "蓝色", "红色", "绿色"][Math.abs(seed + 3) % 5]} | 幸运数字：${Math.abs(seed) % 9 + 1}`
-
-  await prisma.dailyCardRecord.create({
-    data: { userId: auth.userId, cardName: card.name, cardType, message, luckyTip },
-  })
 
   return NextResponse.json({ cardName: card.name, cardType, message, luckyTip, imageUrl: null, alreadyDrew: false })
 }

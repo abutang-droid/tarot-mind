@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { getAuthUser } from "@/lib/auth"
 import { drawCards } from "@/lib/tarot/draw"
 
 const CONCLUSIONS = ["可行", "蓄力", "暂缓"]
@@ -16,9 +14,6 @@ const ADVICE_POOL = [
 ]
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthUser()
-  if (!auth) return NextResponse.json({ error: "未登录" }, { status: 401 })
-
   const { wish } = await req.json()
   if (!wish || wish.length > 200) {
     return NextResponse.json({ error: "心愿内容需在200字以内" }, { status: 400 })
@@ -30,9 +25,5 @@ export async function POST(req: NextRequest) {
   const conclusionIdx = seed % CONCLUSIONS.length
   const adviceIdx = (seed + 1) % ADVICE_POOL.length
 
-  const record = await prisma.wishRecord.create({
-    data: { userId: auth.userId, wish, cardName: card.cardName, conclusion: CONCLUSIONS[conclusionIdx], advice: ADVICE_POOL[adviceIdx] },
-  })
-
-  return NextResponse.json({ id: record.id, cardName: card.cardName, orientation: card.orientation, conclusion: CONCLUSIONS[conclusionIdx], advice: ADVICE_POOL[adviceIdx], seed: result.seed })
+  return NextResponse.json({ id: crypto.randomUUID(), cardName: card.cardName, orientation: card.orientation, conclusion: CONCLUSIONS[conclusionIdx], advice: ADVICE_POOL[adviceIdx], seed: result.seed })
 }
