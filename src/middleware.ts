@@ -3,7 +3,7 @@ import { jwtVerify } from "jose"
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "tarot-dev-secret-key-change-in-production")
 
-const publicPaths = ["/login", "/register", "/api/auth/login", "/api/auth/register"]
+const publicPaths = ["/login", "/api/auth/login"]
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
