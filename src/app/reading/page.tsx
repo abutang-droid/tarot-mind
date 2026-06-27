@@ -3,7 +3,7 @@ import { useState, useCallback, useRef, useEffect } from "react"
 import Link from "next/link"
 
 // ─── Types ─────────────────────────────────────────────────────────
-type ReadingStep = "question" | "shuffle" | "reveal" | "interpreting" | "synthesis" | "blessing"
+type ReadingStep = "question" | "shuffle" | "reveal" | "interpreting" | "synthesis" | "crystal_quiz" | "blessing"
 type SpreadType = "single" | "three"
 
 interface CardData {
@@ -80,7 +80,7 @@ function CardInReading({
 
 // ─── Step Indicator ─────────────────────────────────────────────
 const STEP_NAMES = ["问牌", "翻牌", "解读", "融通", "护持"] as const
-const STEP_KEYS: ReadingStep[] = ["question", "reveal", "interpreting", "synthesis", "blessing"]
+const STEP_KEYS: ReadingStep[] = ["question", "reveal", "interpreting", "synthesis", "crystal_quiz", "blessing"]
 
 function StepIndicator({ step }: { step: ReadingStep }) {
   const activeKey = step === "shuffle" ? "reveal" : step
@@ -152,6 +152,9 @@ export default function ReadingPage() {
   const [isStreaming, setIsStreaming] = useState(false)
   const [currentCardIdx, setCurrentCardIdx] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [quizStep, setQuizStep] = useState(0)
+  const [quizAnswers, setQuizAnswers] = useState<{wuxing:string;label:string}[]>([])
+  const [quizData, setQuizData] = useState<{questions:{question:string;options:{label:string;wuxing:string}[]}[]}|null>(null)
   const [readingId, setReadingId] = useState<string | null>(null)
 
   const questionTags = [
@@ -217,16 +220,13 @@ export default function ReadingPage() {
     const elements = currentCards.map(c => c.element).filter(Boolean)
     const reversedCount = currentCards.filter(c => c.orientation === "逆位").length
 
-    // ── Element-based wuxing matching ──
-    // Prioritize: fire→wood, water→fire, wind→metal, earth→earth
-    // Then: many reversed→water (protection), all else→earth (stability)
     const fireCount = elements.filter(e => e === "火").length
     const waterCount = elements.filter(e => e === "水").length
     const windCount = elements.filter(e => e === "风").length
     const earthCount = elements.filter(e => e === "土").length
-    const majorCount = elements.filter(e => !["火","水","风","土"].includes(e)).length // elements like "major" or custom
+    const majorCount = elements.filter(e => !["火","水","风","土"].includes(e)).length
 
-    let wuxing = "土" // default fallback
+    let wuxing = "土"
     if (fireCount >= 2)            wuxing = "木"
     else if (waterCount >= 2)      wuxing = "火"
     else if (windCount >= 2)       wuxing = "金"
@@ -237,8 +237,6 @@ export default function ReadingPage() {
     else if (windCount === 1)      wuxing = "金"
     else if (earthCount === 1)     wuxing = "土"
     else if (majorCount >= 1)      wuxing = "土"
-
-    const crystal = crystalMap[wuxing] || { name: "白水晶", emoji: "✨" }
 
     const c0 = currentCards[0] || { cardName: "?", orientation: "正位" as const }
     const c1 = currentCards[1] || { cardName: "?", orientation: "正位" as const }
@@ -252,6 +250,27 @@ export default function ReadingPage() {
       c2.orientation === "正位" ? "信任你第一直觉给的方向——那就是对的。" : "在迷雾中，最好的策略不是乱冲，是站定了等风来。",
     ])
 
+    // Fetch AI-generated quiz questions
+    fetch("/api/reading/crystal-quiz", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cards: currentCards, question }),
+    })
+      .then(r => r.json())
+      .then(data => { setQuizData(data); setStep("crystal_quiz") })
+      .catch(() => { setQuizData(null); setStep("crystal_quiz") })
+  }, [question])
+
+  const finishQuiz = useCallback(() => {
+    // Count wuxing votes from all 3 answers
+    const counts: Record<string,number> = {}
+    quizAnswers.forEach(a => { counts[a.wuxing] = (counts[a.wuxing]||0) + 1 })
+    let wuxing = "土"
+    let max = 0
+    for (const [k,v] of Object.entries(counts)) { if (v > max) { max = v; wuxing = k } }
+
+    const crystal = crystalMap[wuxing] || { name: "白水晶", emoji: "✨" }
+
     setBlessing({
       wuxing,
       crystal: wuxing,
@@ -262,9 +281,8 @@ export default function ReadingPage() {
         : wuxing === "金" ? "清晰即力量。我知道自己在做什么。"
         : "我的平静比任何风暴都更有力量。",
     })
-
     setStep("blessing")
-  }, [])
+  }, [quizAnswers])
 
   const positionLabels: Record<string, string> = {
     past: "过去", present: "现在", future: "未来", current: "此刻",
@@ -332,7 +350,7 @@ export default function ReadingPage() {
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
           {cards.map((card, idx) => (
             <CardInReading key={idx} card={card} positionLabel={positionLabels[card.position] || card.position}
-              disabled={step === "interpreting" || step === "synthesis" || step === "blessing" || idx !== currentCardIdx}
+              disabled={step === "interpreting" || step === "synthesis" || step === "crystal_quiz" || step === "blessing" || idx !== currentCardIdx}
               onClick={() => revealCard(idx)} />
           ))}
         </div>
@@ -356,6 +374,88 @@ export default function ReadingPage() {
         )}
 
         {/* Synthesis */}
+        {step === "synthesis" && (
+          <div className="animate-fade-in-up" style={{ marginBottom: 16 }}>
+            <div style={{ padding: '20px', background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', marginBottom: 20 }}>
+              <div className="section-label" style={{ marginBottom: 12 }}>牌面融通</div>
+              <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--text-primary)', marginBottom: 16 }}>{synthesisText}</p>
+              {suggestions.length > 0 && (
+                <div style={{ background: 'rgba(201,149,74,0.06)', borderRadius: 'var(--radius-md)', padding: '16px 18px' }}>
+                  <div style={{ fontSize: 12, color: 'var(--gold-light)', marginBottom: 10, fontWeight: 600 }}>给你的建议</div>
+                  {suggestions.map((s, i) => (
+                    <div key={i} style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.7, marginBottom: 8, paddingLeft: 16, position: 'relative' }}>
+                      <span style={{ position: 'absolute', left: 0, color: 'var(--gold)', fontWeight: 600 }}>{i + 1}.</span>{s}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Crystal Quiz */}
+        {step === "crystal_quiz" && (
+          <div className="animate-fade-in-up" style={{ marginBottom: 16 }}>
+            <div className="crystal-card" style={{ marginBottom: 24 }}>
+              <div className="section-label" style={{ marginBottom: 16, textAlign: 'center' }}>找到你的补能水晶</div>
+
+              {!quizData ? (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <div className="spinner" style={{ margin: '0 auto 16px' }} />
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-serif)' }}>
+                    牌正在为你准备问题...
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {quizData.questions.map((q, qi) => (
+                    quizStep === qi ? (
+                      <div key={qi}>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16, fontFamily: 'var(--font-serif)' }}>
+                          {q.question}
+                        </div>
+                        {q.options.map((opt, oi) => (
+                          <button key={oi}
+                            onClick={() => {
+                              const newAnswers = [...quizAnswers, {wuxing: opt.wuxing, label: opt.label}]
+                              setQuizAnswers(newAnswers)
+                              if (qi + 1 >= quizData!.questions.length) {
+                                setQuizStep(qi + 1)
+                                // Compute and finish on next tick after state settles
+                                setTimeout(finishQuiz, 50)
+                              } else {
+                                setQuizStep(qi + 1)
+                              }
+                            }}
+                            className="btn-outline"
+                            style={{ width: '100%', marginBottom: 10, justifyContent: 'flex-start', fontSize: 13, textAlign: 'left' }}>
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null
+                  ))}
+                  {quizStep >= (quizData?.questions?.length || 0) && (
+                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                      <div className="spinner" style={{ margin: '0 auto 16px' }} />
+                      <div style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-serif)' }}>
+                        水晶正在回应你的选择...
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {quizData && quizStep < quizData.questions.length && (
+                <div style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: 'var(--text-muted)' }}>
+                  第 {quizStep + 1}/{quizData.questions.length} 问
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Blessing */}
         {step === "blessing" && (
           <div className="animate-fade-in-up">
             <div style={{ padding: '20px', background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', marginBottom: 20 }}>
