@@ -3,7 +3,7 @@ import { useState, useCallback, useRef, useEffect } from "react"
 import Link from "next/link"
 
 // ─── Types ─────────────────────────────────────────────────────────
-type ReadingStep = "question" | "shuffle" | "reveal" | "interpreting" | "synthesis" | "crystal_quiz" | "blessing"
+type ReadingStep = "question" | "shuffle" | "reveal" | "interpreting" | "synthesis" | "profile" | "crystal_quiz" | "blessing"
 type SpreadType = "single" | "three"
 
 interface CardData {
@@ -79,8 +79,8 @@ function CardInReading({
 }
 
 // ─── Step Indicator ─────────────────────────────────────────────
-const STEP_NAMES = ["问牌", "翻牌", "解读", "融通", "护持"] as const
-const STEP_KEYS: ReadingStep[] = ["question", "reveal", "interpreting", "synthesis", "crystal_quiz", "blessing"]
+const STEP_NAMES = ["问牌", "翻牌", "解读", "融通", "资料", "水晶", "护持"] as const
+const STEP_KEYS: ReadingStep[] = ["question", "reveal", "interpreting", "synthesis", "profile", "crystal_quiz", "blessing"]
 
 function StepIndicator({ step }: { step: ReadingStep }) {
   const activeKey = step === "shuffle" ? "reveal" : step
@@ -155,6 +155,8 @@ export default function ReadingPage() {
   const [quizStep, setQuizStep] = useState(0)
   const [quizAnswers, setQuizAnswers] = useState<{wuxing:string;label:string}[]>([])
   const [quizData, setQuizData] = useState<{questions:{question:string;options:{label:string;wuxing:string}[]}[]}|null>(null)
+  const [profileStep, setProfileStep] = useState(0) // 0,1,2,3 for 4 profile questions
+  const [profile, setProfile] = useState({ name: "", birthdate: "", gender: "", occupation: "" })
   const [readingId, setReadingId] = useState<string | null>(null)
 
   const questionTags = [
@@ -254,12 +256,12 @@ export default function ReadingPage() {
     fetch("/api/reading/crystal-quiz", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cards: currentCards, question }),
+      body: JSON.stringify({ cards: currentCards, question, profile }),
     })
       .then(r => r.json())
-      .then(data => { setQuizData(data); setStep("crystal_quiz") })
-      .catch(() => { setQuizData(null); setStep("crystal_quiz") })
-  }, [question])
+      .then(data => { setQuizData(data); setStep("profile") })
+      .catch(() => { setQuizData(null); setStep("profile") })
+  }, [question, profile])
 
   const finishQuiz = useCallback(() => {
     // Count wuxing votes from all 3 answers
@@ -350,7 +352,7 @@ export default function ReadingPage() {
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
           {cards.map((card, idx) => (
             <CardInReading key={idx} card={card} positionLabel={positionLabels[card.position] || card.position}
-              disabled={step === "interpreting" || step === "synthesis" || step === "crystal_quiz" || step === "blessing" || idx !== currentCardIdx}
+              disabled={step === "interpreting" || step === "synthesis" || step === "profile" || step === "crystal_quiz" || step === "blessing" || idx !== currentCardIdx}
               onClick={() => revealCard(idx)} />
           ))}
         </div>
@@ -389,6 +391,103 @@ export default function ReadingPage() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Profile — collect user info before crystal quiz */}
+        {step === "profile" && (
+          <div className="animate-fade-in-up" style={{ marginBottom: 16 }}>
+            <div className="crystal-card" style={{ marginBottom: 24 }}>
+              <div className="section-label" style={{ marginBottom: 16, textAlign: 'center' }}>让我更了解你</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 20, fontFamily: 'var(--font-serif)' }}>
+                以下问题可以跳过，但你的回答会让水晶匹配更准
+              </div>
+
+              {profileStep === 0 && (
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 8 }}>你的名字 / 怎么称呼你？</div>
+                  <input className="input-field" placeholder="输入名字（可跳过）"
+                    value={profile.name}
+                    onChange={e => setProfile({ ...profile, name: e.target.value })}
+                    onKeyDown={e => { if (e.key === "Enter") setProfileStep(1) }}
+                    autoFocus maxLength={30} />
+                  <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                    <button className="tag" onClick={() => setProfileStep(1)} style={{ border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>下一题 →</button>
+                    <button className="tag" onClick={() => { setProfileStep(1) }} style={{ border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', background: 'transparent', color: 'var(--text-muted)' }}>跳过</button>
+                  </div>
+                </div>
+              )}
+
+              {profileStep === 1 && (
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 8 }}>你的出生日期？</div>
+                  <input className="input-field" type="date" placeholder="YYYY-MM-DD（可跳过）"
+                    value={profile.birthdate}
+                    onChange={e => setProfile({ ...profile, birthdate: e.target.value })} />
+                  <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                    <button className="tag" onClick={() => setProfileStep(2)} style={{ border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>下一题 →</button>
+                    <button className="tag" onClick={() => setProfileStep(2)} style={{ border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', background: 'transparent', color: 'var(--text-muted)' }}>跳过</button>
+                  </div>
+                </div>
+              )}
+
+              {profileStep === 2 && (
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 8 }}>你的性别？</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {["女","男","非二元","不想说"].map(g => (
+                      <button key={g} className={profile.gender === g ? "tag" : "tag"}
+                        onClick={() => setProfile({ ...profile, gender: g })}
+                        style={{
+                          border: profile.gender === g ? '1px solid var(--border-focus)' : '1px solid var(--border)',
+                          background: profile.gender === g ? 'var(--bg-card-hover)' : 'var(--bg-card)',
+                          cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                        }}>
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                    <button className="tag" onClick={() => setProfileStep(3)} style={{ border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>下一题 →</button>
+                    <button className="tag" onClick={() => setProfileStep(3)} style={{ border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', background: 'transparent', color: 'var(--text-muted)' }}>跳过</button>
+                  </div>
+                </div>
+              )}
+
+              {profileStep === 3 && (
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 8 }}>你的身份？</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {["工作","待业","学生","自由职业"].map(o => (
+                      <button key={o} className="tag"
+                        onClick={() => setProfile({ ...profile, occupation: o })}
+                        style={{
+                          border: profile.occupation === o ? '1px solid var(--border-focus)' : '1px solid var(--border)',
+                          background: profile.occupation === o ? 'var(--bg-card-hover)' : 'var(--bg-card)',
+                          cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                        }}>
+                        {o}
+                      </button>
+                    ))}
+                  </div>
+                  <button className="btn-primary" style={{ width: '100%', marginTop: 16 }} onClick={() => {
+                    // Save profile to user data (no-op for now, going to crystal quiz)
+                    setStep("crystal_quiz"); setQuizStep(0)
+                  }}>
+                    {profile.name ? `好的，${profile.name} — 继续选水晶` : "继续选水晶"}
+                  </button>
+                  <button className="btn-ghost" style={{ width: '100%', marginTop: 8 }} onClick={() => {
+                    setStep("crystal_quiz"); setQuizStep(0)
+                  }}>
+                    全部跳过
+                  </button>
+                </div>
+              )}
+
+              <div style={{ textAlign: 'center', marginTop: 16, fontSize: 11, color: 'var(--text-muted)' }}>
+                {profileStep < 3 ? `第 ${profileStep + 1}/4 问` : "最后一步"}
+              </div>
             </div>
           </div>
         )}
