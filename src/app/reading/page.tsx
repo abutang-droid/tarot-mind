@@ -215,15 +215,28 @@ export default function ReadingPage() {
   const doSynthesis = useCallback((currentCards: CardData[]) => {
     setStep("synthesis")
     const elements = currentCards.map(c => c.element).filter(Boolean)
-    const majorCount = currentCards.filter(c => c.cardNameEn?.includes("The") || c.cardName?.includes("大")).length
     const reversedCount = currentCards.filter(c => c.orientation === "逆位").length
 
-    let wuxing = "金"
-    if (elements.filter(e => e === "火").length >= 2) wuxing = "木"
-    else if (elements.filter(e => e === "水").length >= 2) wuxing = "火"
-    else if (majorCount >= 2) wuxing = "土"
-    else if (elements.filter(e => e === "风").length >= 2) wuxing = "金"
-    else if (reversedCount >= 2) wuxing = "水"
+    // ── Element-based wuxing matching ──
+    // Prioritize: fire→wood, water→fire, wind→metal, earth→earth
+    // Then: many reversed→water (protection), all else→earth (stability)
+    const fireCount = elements.filter(e => e === "火").length
+    const waterCount = elements.filter(e => e === "水").length
+    const windCount = elements.filter(e => e === "风").length
+    const earthCount = elements.filter(e => e === "土").length
+    const majorCount = elements.filter(e => !["火","水","风","土"].includes(e)).length // elements like "major" or custom
+
+    let wuxing = "土" // default fallback
+    if (fireCount >= 2)            wuxing = "木"
+    else if (waterCount >= 2)      wuxing = "火"
+    else if (windCount >= 2)       wuxing = "金"
+    else if (earthCount >= 2)      wuxing = "土"
+    else if (reversedCount >= 2)   wuxing = "水"
+    else if (fireCount === 1)      wuxing = "木"
+    else if (waterCount === 1)     wuxing = "火"
+    else if (windCount === 1)      wuxing = "金"
+    else if (earthCount === 1)     wuxing = "土"
+    else if (majorCount >= 1)      wuxing = "土"
 
     const crystal = crystalMap[wuxing] || { name: "白水晶", emoji: "✨" }
 
