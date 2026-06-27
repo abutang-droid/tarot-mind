@@ -213,8 +213,8 @@ export default function ReadingPage() {
 
   const doSynthesis = useCallback((currentCards: CardData[]) => {
     setStep("synthesis")
-    const elements = currentCards.map(c => c.element)
-    const majorCount = currentCards.filter(c => c.cardNameEn.includes("The") || c.cardName.includes("大")).length
+    const elements = currentCards.map(c => c.element).filter(Boolean)
+    const majorCount = currentCards.filter(c => c.cardNameEn?.includes("The") || c.cardName?.includes("大")).length
     const reversedCount = currentCards.filter(c => c.orientation === "逆位").length
 
     let wuxing = "金"
@@ -226,12 +226,16 @@ export default function ReadingPage() {
 
     const crystal = crystalMap[wuxing] || { name: "白水晶", emoji: "✨" }
 
-    setSynthesisText(`这三张牌共同描绘了你当下的处境。${currentCards[0]?.cardName}在${currentCards[0]?.orientation === "正位" ? "顺流" : "提醒"}中指向你的过往——那段经历至今仍在塑造着你的选择。${currentCards[1]?.cardName}代表此刻的能量，${currentCards[1]?.orientation === "正位" ? "它正推动你向前" : "它在温柔地劝你慢下来"}。而${currentCards[2]?.cardName}已经在地平线上展开了未来的可能——${currentCards[2]?.orientation === "正位" ? "那是一条清晰的路" : "那是一条藏在迷雾中的路，需要你多一分耐心"}。`)
+    const c0 = currentCards[0] || { cardName: "?", orientation: "正位" as const }
+    const c1 = currentCards[1] || { cardName: "?", orientation: "正位" as const }
+    const c2 = currentCards[2] || { cardName: "?", orientation: "正位" as const }
+
+    setSynthesisText(`这三张牌共同描绘了你当下的处境。${c0.cardName}在${c0.orientation === "正位" ? "顺流" : "提醒"}中指向你的过往——那段经历至今仍在塑造着你的选择。${c1.cardName}代表此刻的能量，${c1.orientation === "正位" ? "它正推动你向前" : "它在温柔地劝你慢下来"}。而${c2.cardName}已经在地平线上展开了未来的可能——${c2.orientation === "正位" ? "那是一条清晰的路" : "那是一条藏在迷雾中的路，需要你多一分耐心"}。`)
 
     setSuggestions([
-      currentCards[0].orientation === "正位" ? "把过去的经验当成指南，而非包袱。" : "有些旧事不需要现在解决——允许自己放一放。",
+      c0.orientation === "正位" ? "把过去的经验当成指南，而非包袱。" : "有些旧事不需要现在解决——允许自己放一放。",
       "接下来的三天里，做一件你一直拖着的小事。不为什么，就是为了证明给自己看。",
-      currentCards[2].orientation === "正位" ? "信任你第一直觉给的方向——那就是对的。" : "在迷雾中，最好的策略不是乱冲，是站定了等风来。",
+      c2.orientation === "正位" ? "信任你第一直觉给的方向——那就是对的。" : "在迷雾中，最好的策略不是乱冲，是站定了等风来。",
     ])
 
     setBlessing({
