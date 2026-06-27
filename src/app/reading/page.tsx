@@ -206,6 +206,7 @@ export default function ReadingPage() {
       if (cardIndex >= cards.length - 1) {
         doSynthesis(final)
       } else {
+        setCurrentCardIdx(cardIndex + 1)
         setStep("reveal")
       }
     }, 800)
