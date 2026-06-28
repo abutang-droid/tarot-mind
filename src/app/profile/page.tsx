@@ -48,9 +48,6 @@ export default function ProfilePage() {
             </Link>
           ))}
         </div>
-        <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
-          <div className="section-label" style={{ fontSize: 9, letterSpacing: '0.2em' }}>SOB O MANTO</div>
-        </div>
       </div>
     </div>
   )

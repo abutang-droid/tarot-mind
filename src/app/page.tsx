@@ -58,53 +58,7 @@ function Starfield() {
   return <canvas ref={canvasRef} className="star-canvas" aria-hidden="true" />
 }
 
-// ─── Card Back ────────────────────────────────────────────────────
-function CardBack({ floatDelay = 0 }: { floatDelay?: number }) {
-  return (
-    <div style={{
-      width: 100, height: 148, position: 'relative',
-      animation: `float 3s ease-in-out infinite`, animationDelay: `${floatDelay}s`,
-    }}>
-      <div className="card-back card-breath" style={{
-        width: '100%', height: '100%', display: 'flex',
-        alignItems: 'center', justifyContent: 'center',
-        borderRadius: 'var(--radius-md)',
-      }}>
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <circle cx="30" cy="30" r="28" stroke="rgba(201,149,74,0.2)" strokeWidth="0.8" />
-          <circle cx="30" cy="30" r="22" stroke="rgba(201,149,74,0.15)" strokeWidth="0.5" />
-          <circle cx="30" cy="30" r="16" stroke="rgba(201,149,74,0.1)" strokeWidth="0.5" />
-          {[0,45,90,135,180,225,270,315].map((angle, i) => {
-            const rad = (angle * Math.PI) / 180
-            return (
-              <line key={i}
-                x1={30 + 8 * Math.cos(rad)} y1={30 + 8 * Math.sin(rad)}
-                x2={30 + 14 * Math.cos(rad)} y2={30 + 14 * Math.sin(rad)}
-                stroke="rgba(201,149,74,0.35)" strokeWidth="0.8" strokeLinecap="round"
-              />
-            )
-          })}
-          <circle cx="30" cy="30" r="3" fill="rgba(201,149,74,0.4)" />
-        </svg>
-        {/* Corner ornaments */}
-        {[
-          { top: 6, left: 6, bt: 1, bl: 1 },
-          { top: 6, right: 6, bt: 1, br: 1 },
-          { bottom: 6, left: 6, bb: 1, bl: 1 },
-          { bottom: 6, right: 6, bb: 1, br: 1 },
-        ].map((p, i) => (
-          <div key={i} style={{
-            position: 'absolute', ...p, width: 8, height: 8,
-            borderTop: p.bt ? '1px solid rgba(201,149,74,0.2)' : undefined,
-            borderLeft: p.bl ? '1px solid rgba(201,149,74,0.2)' : undefined,
-            borderRight: p.br ? '1px solid rgba(201,149,74,0.2)' : undefined,
-            borderBottom: p.bb ? '1px solid rgba(201,149,74,0.2)' : undefined,
-          }} />
-        ))}
-      </div>
-    </div>
-  )
-}
+import CardFrame from "@/components/CardFrame"
 
 // ─── Today's Energy ───────────────────────────────────────────────
 function TodayEnergy() {
@@ -164,48 +118,47 @@ export default function MantoHomePage() {
         {/* Hero: 3 Card Backs */}
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
-          paddingTop: 48, paddingBottom: 32,
+          paddingTop: 20, paddingBottom: 24,
         }} className="animate-fade-in-up">
-          <div style={{ display: 'flex', gap: 12, marginBottom: 32 }}>
-            <CardBack floatDelay={0} />
-            <CardBack floatDelay={1} />
-            <CardBack floatDelay={2} />
+          <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
+            <div className="animate-float" style={{ animationDelay: '0s' }}>
+              <CardFrame back width={130} glow />
+            </div>
+            <div className="animate-float" style={{ animationDelay: '1s' }}>
+              <CardFrame back width={130} glow />
+            </div>
+            <div className="animate-float" style={{ animationDelay: '2s' }}>
+              <CardFrame back width={130} glow />
+            </div>
           </div>
 
           <h1 style={{
-            fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600,
-            color: 'var(--text-primary)', textAlign: 'center', marginBottom: 8,
-            letterSpacing: '0.02em',
+            fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600,
+            color: 'var(--text-primary)', textAlign: 'center', marginBottom: 4,
+            letterSpacing: '0.02em', lineHeight: 1.35,
           }}>
             翻一张牌，看看今天怎么走
           </h1>
           <p style={{
-            fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center',
-            marginBottom: 24, maxWidth: 280,
+            fontSize: 11, color: 'var(--text-secondary)', textAlign: 'center',
+            marginBottom: 18, maxWidth: 260, lineHeight: 1.4,
           }}>
             Vire a carta. O divino te espera.
           </p>
 
           <button className="btn-primary" onClick={() => router.push("/reading")}
-            style={{ width: '100%', maxWidth: 300 }}>
+            style={{ width: '100%', maxWidth: 280, padding: '12px 28px', fontSize: 15 }}>
             🔮 开始占卜 · 首次免费
           </button>
-
-          <Link href="/temple" style={{
-            marginTop: 16, fontSize: 13, color: 'var(--text-secondary)',
-            textDecoration: 'none', fontFamily: 'var(--font-sans)',
-          }}>
-            🛐 先去拜个神，让今天被守护
-          </Link>
         </div>
 
         {/* Today's Energy */}
-        <section className="animate-fade-in-up delay-200" style={{ marginBottom: 32 }}>
+        <section className="animate-fade-in-up delay-200" style={{ marginBottom: 24 }}>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            marginBottom: 14,
+            marginBottom: 12,
           }}>
-            <span className="section-label" style={{ fontSize: 11 }}>今日能量</span>
+            <span className="section-label" style={{ fontSize: 10 }}>今日能量</span>
             <Link href="/fortune" style={{
               fontSize: 11, color: 'var(--gold)', textDecoration: 'none',
             }}>
@@ -216,7 +169,7 @@ export default function MantoHomePage() {
         </section>
 
         {/* Temple banner */}
-        <section className="animate-fade-in-up delay-300" style={{ marginBottom: 32 }}>
+        <section className="animate-fade-in-up delay-300" style={{ marginBottom: 16 }}>
           <Link href="/temple" style={{ textDecoration: 'none' }}>
             <div className="card-gold card-hover" style={{
               padding: '24px 20px', display: 'flex', alignItems: 'center', gap: 16,
@@ -240,13 +193,6 @@ export default function MantoHomePage() {
             </div>
           </Link>
         </section>
-
-        {/* Footer */}
-        <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
-          <div className="section-label" style={{ fontSize: 9, letterSpacing: '0.2em' }}>
-            SOB O MANTO
-          </div>
-        </div>
       </div>
     </>
   )

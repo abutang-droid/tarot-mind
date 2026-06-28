@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
         positionLabel: pos === "past" ? "过去" : pos === "present" ? "现在" : pos === "future" ? "未来" : "此刻",
         cardName: c.cardName,
         cardNameEn: c.card?.nameEn || c.cardName,
+        cardId: c.cardId,
         orientation: c.orientation,
         element: c.card?.element || "major",
         revealed: false,

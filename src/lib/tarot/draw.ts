@@ -9,6 +9,7 @@ export interface DrawConfig {
 export interface DrawCard {
   position: string
   cardName: string
+  cardId: number
   orientation: "正位" | "逆位"
   card: TarotCardData
 }
@@ -102,6 +103,7 @@ export function drawCards(spreadKey: string, question: string = "", seed?: numbe
     cards.push({
       position: name,
       cardName: picked.name,
+      cardId: picked.id,
       orientation,
       card: picked,
     })

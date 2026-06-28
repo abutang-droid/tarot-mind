@@ -14,9 +14,8 @@ export default function CrystalListPage() {
     <div style={{ maxWidth: 'var(--content-max)', margin: '0 auto', padding: '0 20px' }}>
       <div style={{ paddingTop: 32 }}>
         <div className="page-header" style={{ padding: '16px 0' }}>
-          <span className="label">📿 守护水晶</span>
           <h1>五行补能手串</h1>
-          <p>8mm × 23颗 · 弹力绳 · 附Manto暗金绒布袋</p>
+          <p style={{ marginTop: 8 }}>📿 守护水晶</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 32 }}>
           {CRYSTALS.map(crystal => (

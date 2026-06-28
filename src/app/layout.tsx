@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import "./globals.css"
 import AppShell from "@/components/AppShell"
+import { LangProvider } from "@/lib/i18n/context"
+import { UserProvider } from "@/lib/user"
 
 export const metadata: Metadata = {
   title: "Manto — 翻牌看运，拜神护体",
@@ -23,9 +25,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="antialiased">
-        <AppShell>
-          {children}
-        </AppShell>
+        <UserProvider>
+          <LangProvider>
+            <AppShell>
+              {children}
+            </AppShell>
+          </LangProvider>
+        </UserProvider>
       </body>
     </html>
   )
