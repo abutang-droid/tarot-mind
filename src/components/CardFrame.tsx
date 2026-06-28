@@ -40,10 +40,10 @@ export default function CardFrame({
 
   // Determine image source
   const imgSrc = back
-    ? "/cards/back.png"
+    ? "/cards/back.webp"
     : revealed && card
       ? card.imageUrl
-      : "/cards/back.png"
+      : "/cards/back.webp"
 
   const inner = (
     <div style={{

@@ -69,7 +69,7 @@ export const ALL_CARDS: TarotCardData[] = [
     keywords: ["新的开始", "冒险", "自由"],
     meaningUp: "新的旅程正在召唤你，勇敢迈出第一步，信任生命的安排。",
     meaningDown: "是否在逃避某个重要的决定？小心鲁莽行事带来的后果。",
-    symbol: "fool", imageUrl: "/cards/0.png" },
+    symbol: "fool", imageUrl: "/cards/0.webp" },
 
   { id: 1, name: "魔术师", nameEn: "The Magician", namePt: MAJOR_PT[1], nameEs: MAJOR_ES[1],
     arcana: "major", number: 1, element: "风", wuxing: "木",
