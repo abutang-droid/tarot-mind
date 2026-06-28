@@ -144,26 +144,18 @@ function WorshipScreen({ deity, onComplete }: { deity: Deity; onComplete: (durat
         <HaloRings stage={stage} deityColor={deity.color} />
         <Particles stage={isPressed ? stage : 0} />
 
-        {/* Deity icon */}
+        {/* Deity image */}
         <div style={{
           width: 140, height: 140, borderRadius: '50%',
-          background: deity.gradient,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 48, color: '#fff',
+          overflow: 'hidden',
           boxShadow: stage >= 2 ? `0 0 40px ${deity.color}44` : '0 0 10px rgba(0,0,0,0.3)',
           transition: 'all 0.5s var(--ease-out)',
           transform: stage >= 3 ? 'scale(1.05)' : 'scale(1)',
           position: 'relative', zIndex: 2,
           border: `2px solid ${stage >= 2 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)'}`,
         }}>
-          {deity.id === "aparecida" ? "✨" :
-           deity.id === "guadalupe" ? "🌹" :
-           deity.id === "lujan" ? "🕊️" :
-           deity.id === "santonino" ? "👑" :
-           deity.id === "guanyin" ? "🪷" :
-           deity.id === "brahma" ? "🙏" :
-           deity.id === "ganesha" ? "🐘" :
-           deity.id === "mazu" ? "🌊" : "🕯️"}
+          <img src={deity.imageUrl} alt={deity.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         </div>
       </div>
 
@@ -435,18 +427,10 @@ export default function TemplePage() {
               >
                 <div style={{
                   width: 48, height: 48, borderRadius: '50%',
-                  background: deity.gradient,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 20, color: '#fff',
+                  overflow: 'hidden',
                 }}>
-                  {deity.id === "aparecida" ? "✨" :
-                   deity.id === "guadalupe" ? "🌹" :
-                   deity.id === "lujan" ? "🕊️" :
-                   deity.id === "santonino" ? "👑" :
-                   deity.id === "guanyin" ? "🪷" :
-                   deity.id === "brahma" ? "🙏" :
-                   deity.id === "ganesha" ? "🐘" :
-                   deity.id === "mazu" ? "🌊" : "🕯️"}
+                  <img src={deity.imageUrl} alt={deity.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
                 <div>
                   <div style={{
