@@ -264,15 +264,14 @@ function BlessingScreen({ deity, duration, stage, onDone }: {
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       paddingTop: 48, textAlign: 'center',
     }}>
-      {/* Small deity icon */}
+      {/* Small deity image */}
       <div style={{
         width: 60, height: 60, borderRadius: '50%',
-        background: deity.gradient, marginBottom: 24,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 24, color: '#fff',
+        overflow: 'hidden', marginBottom: 24,
         boxShadow: `0 0 20px ${deity.color}33`,
       }}>
-        ✦
+        <img src={deity.imageUrl} alt={deity.name}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
       </div>
 
       <div style={{
