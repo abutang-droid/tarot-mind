@@ -343,12 +343,28 @@ function BlessingScreen({ deity, duration, stage, onDone }: {
 // ─── Main Temple Page ──────────────────────────────────────────────
 export default function TemplePage() {
   const [selectedDeity, setSelectedDeity] = useState<Deity | null>(null)
+  const [savedDeity, setSavedDeity] = useState<Deity | null>(null)
   const [phase, setPhase] = useState<"select" | "worship" | "blessing">("select")
   const [blessingData, setBlessingData] = useState<{ duration: number; stage: number } | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
+  // Load saved deity from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("manto:deity")
+    if (saved) {
+      try {
+        const deityId = JSON.parse(saved).id
+        const deity = DEITIES.find(d => d.id === deityId)
+        if (deity) setSavedDeity(deity)
+      } catch {}
+    }
+  }, [])
+
   const handleSelectDeity = useCallback((deity: Deity) => {
     setSelectedDeity(deity)
+    // Save to localStorage
+    localStorage.setItem("manto:deity", JSON.stringify({ id: deity.id, name: deity.name }))
+    setSavedDeity(deity)
     setPhase("worship")
   }, [])
 
@@ -376,6 +392,30 @@ export default function TemplePage() {
             <h1>谁在守护你？</h1>
             <p>选择你的守护神，把手指放在神像上</p>
           </div>
+
+          {/* Saved deity — quick re-worship */}
+          {!searchQuery && savedDeity && (
+            <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 14, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '14px 16px' }}>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                <img src={savedDeity.imageUrl} alt={savedDeity.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-serif)' }}>
+                  {savedDeity.name}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                  你的守护神
+                </div>
+              </div>
+              <button
+                onClick={() => handleSelectDeity(savedDeity)}
+                className="btn-primary small"
+                style={{ fontSize: 12, padding: '6px 14px', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)' }}
+              >
+                🛐 参拜
+              </button>
+            </div>
+          )}
 
           {/* Search */}
           <div style={{ marginBottom: 24 }}>
