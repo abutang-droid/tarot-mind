@@ -1,26 +1,27 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useT } from "@/lib/i18n/context"
 
-const ReadingIcon = ({ active }: { active: boolean }) => (
+const TarotIcon = ({ active }: { active: boolean }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
     stroke={active ? "var(--gold-light)" : "var(--text-muted)"}
     strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="4" y="2" width="16" height="20" rx="2" fill={active ? "rgba(201,149,74,0.12)" : "none"} />
-    <circle cx="12" cy="10" r="3" stroke={active ? "#D4A853" : "var(--text-muted)"} strokeWidth="1.6" />
-    <path d="M9 16c0-1.5 1.5-2.5 3-2.5s3 1 3 2.5" />
-    <path d="M12 6v2" stroke={active ? "#D4A853" : "var(--text-muted)"} strokeWidth="1.6" />
+    <rect x="7" y="4" width="12" height="16" rx="2" fill={active ? "rgba(201,149,74,0.12)" : "none"} />
+    <path d="M4 7v11a2 2 0 0 0 2 2h9" opacity="0.7" />
+    <path d="M13 8l1.2 2.2L16.5 11l-1.8 1.4.5 2.4-2.2-1.2-2.2 1.2.5-2.4L9.5 11l2.3-.8L13 8z"
+      fill={active ? "#D4A853" : "none"} stroke={active ? "#D4A853" : "var(--text-muted)"} strokeWidth="1.2" />
   </svg>
 )
 
-const TempleIcon = ({ active }: { active: boolean }) => (
+const BlessingIcon = ({ active }: { active: boolean }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
     stroke={active ? "var(--gold-light)" : "var(--text-muted)"}
     strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 21h18" />
-    <path d="M5 21V9l4-4 3 2 3-2 4 4v12" fill={active ? "rgba(201,149,74,0.08)" : "none"} />
-    <circle cx="12" cy="12" r="3" fill={active ? "rgba(201,149,74,0.15)" : "none"} stroke={active ? "#D4A853" : "var(--text-muted)"} />
-    <path d="M12 15v2" /><path d="M9 12h6" />
+    <circle cx="12" cy="5.5" r="2" fill={active ? "rgba(201,149,74,0.15)" : "none"} />
+    <path d="M12 8v6" />
+    <path d="M12 10c-2.5 0-4.5 1.5-5 4h10c-.5-2.5-2.5-4-5-4z" fill={active ? "rgba(201,149,74,0.1)" : "none"} />
+    <path d="M12 14c3 0 6-1.5 8-3-1 3.5-4 5-8 5s-7-1.5-8-5c2 1.5 5 3 8 3z" opacity="0.8" />
   </svg>
 )
 
@@ -28,8 +29,8 @@ const CrystalIcon = ({ active }: { active: boolean }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
     stroke={active ? "var(--gold-light)" : "var(--text-muted)"}
     strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2L15 8l6 2-5 4 1 7-5-3-5 3 1-7-5-4 6-2 3-6z" fill={active ? "rgba(201,149,74,0.1)" : "none"} />
-    <circle cx="12" cy="11" r="2" fill={active ? "rgba(201,149,74,0.2)" : "none"} />
+    <path d="M6 3h12l3 6-9 12L3 9l3-6z" fill={active ? "rgba(201,149,74,0.1)" : "none"} />
+    <path d="M3 9h18M9 3l-1 6 4 12 4-12-1-6" opacity="0.8" />
   </svg>
 )
 
@@ -43,13 +44,14 @@ const ProfileIcon = ({ active }: { active: boolean }) => (
 )
 
 const NAV_ITEMS = [
-  { href: "/",        label: "占卜",   Icon: ReadingIcon },
-  { href: "/temple",  label: "拜神",   Icon: TempleIcon },
-  { href: "/crystal", label: "水晶",   Icon: CrystalIcon },
-  { href: "/profile", label: "我",     Icon: ProfileIcon },
+  { href: "/",        labels: { en: "Tarot",    zh: "占卜", pt: "Tarô",     es: "Tarot" },     Icon: TarotIcon },
+  { href: "/temple",  labels: { en: "Blessing", zh: "拜神", pt: "Bênção",   es: "Bendición" }, Icon: BlessingIcon },
+  { href: "/crystal", labels: { en: "Crystals", zh: "水晶", pt: "Cristais", es: "Cristales" }, Icon: CrystalIcon },
+  { href: "/profile", labels: { en: "Profile",  zh: "我",   pt: "Perfil",   es: "Perfil" },    Icon: ProfileIcon },
 ]
 
 function BottomNav({ pathname }: { pathname: string }) {
+  const t = useT()
   return (
     <nav style={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
@@ -89,7 +91,7 @@ function BottomNav({ pathname }: { pathname: string }) {
                 fontFamily: 'var(--font-sans)',
                 letterSpacing: '0.02em',
               }}>
-                {item.label}
+                {t(item.labels, item.labels.en)}
               </span>
             </Link>
           )
