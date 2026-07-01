@@ -1,0 +1,39 @@
+# ── Manto / tarot-app — turnkey VPS deployment (Next.js + MySQL) ──
+# Usage:
+#   cp .env.deploy.example .env
+#   # edit .env (set JWT_SECRET, DB passwords, NEXT_PUBLIC_APP_URL)
+#   docker compose up -d --build
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-tarot}
+      MYSQL_USER: ${MYSQL_USER:-tarot}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-tarotpass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpass}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-tarot}:${MYSQL_PASSWORD:-tarotpass}@db:3306/${MYSQL_DATABASE:-tarot}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      SEED_DB: ${SEED_DB:-false}
+      NODE_ENV: production
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+volumes:
+  db_data:
